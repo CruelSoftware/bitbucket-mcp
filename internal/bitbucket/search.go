@@ -37,7 +37,7 @@ func (c *Client) SearchContent(ctx context.Context, workspaceSlug, query, extens
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode == 404 || resp.StatusCode == 501 {
 		return &SearchResponse{Values: []SearchResult{}}, nil
 	}

@@ -6,13 +6,13 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	os.Setenv("BITBUCKET_URL", "https://bitbucket.example.com")
-	os.Unsetenv("MCP_HTTP_PORT")
-	os.Unsetenv("MCP_HTTP_ENDPOINT")
-	os.Unsetenv("BITBUCKET_PROXY_HEADERS")
-	os.Unsetenv("BITBUCKET_DEFAULT_PROJECT")
+	_ = os.Setenv("BITBUCKET_URL", "https://bitbucket.example.com")
+	_ = os.Unsetenv("MCP_HTTP_PORT")
+	_ = os.Unsetenv("MCP_HTTP_ENDPOINT")
+	_ = os.Unsetenv("BITBUCKET_PROXY_HEADERS")
+	_ = os.Unsetenv("BITBUCKET_DEFAULT_PROJECT")
 	defer func() {
-		os.Unsetenv("BITBUCKET_URL")
+		_ = os.Unsetenv("BITBUCKET_URL")
 	}()
 
 	cfg, err := Load()
@@ -31,7 +31,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestLoad_MissingURL(t *testing.T) {
-	os.Unsetenv("BITBUCKET_URL")
+	_ = os.Unsetenv("BITBUCKET_URL")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for missing BITBUCKET_URL")

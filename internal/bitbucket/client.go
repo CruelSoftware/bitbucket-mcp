@@ -86,7 +86,7 @@ func RequestOptsFromContext(ctx context.Context, token string) RequestOpts {
 
 // decodeJSON decodes response body into v, closing the body.
 func decodeJSON(resp *http.Response, v any) error {
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("bitbucket API error %d: %s", resp.StatusCode, string(body))

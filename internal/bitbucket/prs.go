@@ -112,7 +112,7 @@ func (c *Client) MergePullRequest(ctx context.Context, projectKey, repoSlug stri
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("merge failed %d: %s", resp.StatusCode, string(body))
@@ -128,7 +128,7 @@ func (c *Client) DeclinePullRequest(ctx context.Context, projectKey, repoSlug st
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("decline failed %d: %s", resp.StatusCode, string(body))
@@ -144,7 +144,7 @@ func (c *Client) GetPullRequestDiff(ctx context.Context, projectKey, repoSlug st
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
 		return "", fmt.Errorf("get diff failed %d: %s", resp.StatusCode, string(body))
@@ -167,7 +167,7 @@ func (c *Client) AddPullRequestComment(ctx context.Context, projectKey, repoSlug
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode >= 400 {
 		b, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("add comment failed %d: %s", resp.StatusCode, string(b))

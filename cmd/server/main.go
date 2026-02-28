@@ -26,7 +26,7 @@ func main() {
 	http.Handle(cfg.MCPHTTPEndpoint, handler)
 	http.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"status":"healthy"}`)
+		_, _ = fmt.Fprint(w, `{"status":"healthy"}`)
 	})
 
 	addr := fmt.Sprintf(":%d", cfg.MCPHTTPPort)

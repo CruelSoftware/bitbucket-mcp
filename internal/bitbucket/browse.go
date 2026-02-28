@@ -28,9 +28,9 @@ func (c *Client) GetFileContent(ctx context.Context, projectKey, repoSlug, fileP
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
 		return "", fmt.Errorf("get file failed %d: %s", resp.StatusCode, string(body))
 	}
 	var out BrowseResponse
