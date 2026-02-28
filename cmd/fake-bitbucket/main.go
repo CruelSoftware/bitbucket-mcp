@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/n8n/bitbucket-mcp/internal/middleware"
 )
 
 func main() {
@@ -46,7 +48,7 @@ func main() {
 	addr := fmt.Sprintf(":%d", *port)
 	log.Printf("Fake Bitbucket server listening on %s", addr)
 	log.Printf("Set BITBUCKET_URL=http://localhost%s", addr)
-	if err := http.ListenAndServe(addr, mux); err != nil {
+	if err := http.ListenAndServe(addr, middleware.TrailingSlash(mux)); err != nil {
 		log.Fatal(err)
 	}
 }
