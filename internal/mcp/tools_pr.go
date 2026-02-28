@@ -60,7 +60,10 @@ func (s *Server) createPullRequest(ctx context.Context, req *mcp.CallToolRequest
 	if err != nil {
 		return nil, nil, err
 	}
-	data, _ := json.Marshal(pr)
+	data, err := json.Marshal(pr)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal response: %w", err)
+	}
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: string(data)}}}, nil, nil
 }
 
@@ -80,7 +83,10 @@ func (s *Server) getPullRequestDetails(ctx context.Context, req *mcp.CallToolReq
 	if err != nil {
 		return nil, nil, err
 	}
-	data, _ := json.Marshal(pr)
+	data, err := json.Marshal(pr)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal response: %w", err)
+	}
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: string(data)}}}, nil, nil
 }
 
@@ -119,7 +125,10 @@ func (s *Server) getPullRequestReviews(ctx context.Context, req *mcp.CallToolReq
 	if err != nil {
 		return nil, nil, err
 	}
-	data, _ := json.Marshal(resp)
+	data, err := json.Marshal(resp)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal response: %w", err)
+	}
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: string(data)}}}, nil, nil
 }
 

@@ -101,7 +101,7 @@ func (c *Client) MergePullRequest(ctx context.Context, projectKey, repoSlug stri
 		return err
 	}
 	if resp.IsError() {
-		return fmt.Errorf("merge failed %w", apiError(resp, ""))
+		return fmt.Errorf("merge failed: %w", apiError(resp, ""))
 	}
 	return nil
 }
@@ -115,7 +115,7 @@ func (c *Client) DeclinePullRequest(ctx context.Context, projectKey, repoSlug st
 		return err
 	}
 	if resp.IsError() {
-		return fmt.Errorf("decline failed %w", apiError(resp, ""))
+		return fmt.Errorf("decline failed: %w", apiError(resp, ""))
 	}
 	return nil
 }
@@ -129,7 +129,7 @@ func (c *Client) GetPullRequestDiff(ctx context.Context, projectKey, repoSlug st
 		return "", err
 	}
 	if resp.IsError() {
-		return "", fmt.Errorf("get diff failed %w", apiError(resp, ""))
+		return "", fmt.Errorf("get diff failed: %w", apiError(resp, ""))
 	}
 	return resp.String(), nil
 }
@@ -148,7 +148,7 @@ func (c *Client) AddPullRequestComment(ctx context.Context, projectKey, repoSlug
 		return err
 	}
 	if resp.IsError() {
-		return fmt.Errorf("add comment failed %w", apiError(resp, ""))
+		return fmt.Errorf("add comment failed: %w", apiError(resp, ""))
 	}
 	return nil
 }
