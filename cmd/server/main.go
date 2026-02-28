@@ -25,7 +25,8 @@ func main() {
 	client := bitbucket.NewClient(cfg.BitbucketURL, cfg.ExtraHeaders, cfg.LogLevel)
 	srv := mcp.NewServer(client, cfg.DefaultProjectKey)
 
-	handler := middleware.ProxyHeaders(cfg.ProxyHeaders)(mcp.AuthMiddleware()(srv.Handler()))
+	handler := middleware.LogRequests(cfg.LogLevel, log.Default())(
+		middleware.ProxyHeaders(cfg.ProxyHeaders)(mcp.AuthMiddleware()(srv.Handler())))
 
 	mux := http.NewServeMux()
 	mux.Handle(cfg.MCPHTTPEndpoint, handler)

@@ -192,6 +192,9 @@ The token is forwarded directly to Bitbucket's REST API. No server-side credenti
 ## Development
 
 ```bash
+# Smoke test (fake Bitbucket + MCP server + basic requests)
+./scripts/run-smoke-test.sh
+
 # Run tests
 go test -race ./...
 
@@ -215,6 +218,7 @@ CI enforces a **90% minimum test coverage** threshold.
 Images are built and pushed to GitHub Container Registry on push to `main`/`master` or tags `v*`.
 
 - **Image**: `ghcr.io/cruelsoftware/bitbucket-mcp:latest`
+- **Platforms**: `linux/amd64`, `linux/arm64` (Apple Silicon Macs with Docker pull the arm64 variant automatically)
 - **Tags**: `latest` on main, semver on tags (e.g. `v1.0.0` → `1.0.0`, `1.0`)
 - **Setup**: No extra config needed. `GITHUB_TOKEN` has `packages: write` by default.
 
