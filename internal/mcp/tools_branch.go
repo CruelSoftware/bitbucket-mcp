@@ -20,10 +20,10 @@ func (s *Server) registerBranchTools() {
 }
 
 type createBranchArgs struct {
-	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"description=Project key (default: BITBUCKET_DEFAULT_PROJECT)"`
-	Repository   string `json:"repository" jsonschema:"required"`
-	Name         string `json:"name" jsonschema:"required"`
-	StartPoint   string `json:"startPoint" jsonschema:"description=Base branch (default: master)"`
+	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"Project key (default: BITBUCKET_DEFAULT_PROJECT)"`
+	Repository    string `json:"repository" jsonschema:"required"`
+	Name          string `json:"name" jsonschema:"required"`
+	StartPoint    string `json:"startPoint" jsonschema:"Base branch (default: master)"`
 }
 
 func (s *Server) createBranch(ctx context.Context, req *mcp.CallToolRequest, args createBranchArgs) (*mcp.CallToolResult, any, error) {
@@ -36,12 +36,15 @@ func (s *Server) createBranch(ctx context.Context, req *mcp.CallToolRequest, arg
 	if err != nil {
 		return nil, nil, err
 	}
-	data, _ := json.Marshal(branch)
+	data, err := json.Marshal(branch)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal response: %w", err)
+	}
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: string(data)}}}, nil, nil
 }
 
 type listBranchesArgs struct {
-	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"description=Project key (default: BITBUCKET_DEFAULT_PROJECT)"`
+	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"Project key (default: BITBUCKET_DEFAULT_PROJECT)"`
 	Repository    string `json:"repository" jsonschema:"required"`
 }
 
@@ -55,6 +58,9 @@ func (s *Server) listRepositoryBranches(ctx context.Context, req *mcp.CallToolRe
 	if err != nil {
 		return nil, nil, err
 	}
-	data, _ := json.Marshal(resp)
+	data, err := json.Marshal(resp)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal response: %w", err)
+	}
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: string(data)}}}, nil, nil
 }

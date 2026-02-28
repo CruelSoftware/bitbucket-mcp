@@ -16,8 +16,18 @@ jobs:
         with:
           go-version-file: '.go-version'
 
-      - name: Run tests
-        run: go test -race -cover ./...
+      - name: Run tests with coverage
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Check coverage threshold
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep '^total:' | awk '{print $NF}' | tr -d '%')
+          echo "Total coverage: ${COVERAGE}%"
+          PASS=$(echo "$COVERAGE >= 90" | bc -l)
+          if [ "$PASS" != "1" ]; then
+            echo "::error::Coverage ${COVERAGE}% is below 90% threshold"
+            exit 1
+          fi
 
       - name: Vet
         run: go vet ./...

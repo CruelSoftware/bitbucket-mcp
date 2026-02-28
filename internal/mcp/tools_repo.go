@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -36,7 +37,10 @@ func (s *Server) listRepositories(ctx context.Context, req *mcp.CallToolRequest,
 	if err != nil {
 		return nil, nil, err
 	}
-	data, _ := json.Marshal(resp)
+	data, err := json.Marshal(resp)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal response: %w", err)
+	}
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: string(data)}}}, nil, nil
 }
 
@@ -51,7 +55,10 @@ func (s *Server) getRepositoryDetails(ctx context.Context, req *mcp.CallToolRequ
 	if err != nil {
 		return nil, nil, err
 	}
-	data, _ := json.Marshal(repo)
+	data, err := json.Marshal(repo)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal response: %w", err)
+	}
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: string(data)}}}, nil, nil
 }
 
@@ -67,15 +74,18 @@ func (s *Server) searchContent(ctx context.Context, req *mcp.CallToolRequest, ar
 	if err != nil {
 		return nil, nil, err
 	}
-	data, _ := json.Marshal(resp)
+	data, err := json.Marshal(resp)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal response: %w", err)
+	}
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: string(data)}}}, nil, nil
 }
 
 type getFileContentArgs struct {
-	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"description=Project key (default: BITBUCKET_DEFAULT_PROJECT)"`
+	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"Project key (default: BITBUCKET_DEFAULT_PROJECT)"`
 	RepoSlug      string `json:"repoSlug" jsonschema:"required"`
 	FilePath      string `json:"filePath" jsonschema:"required"`
-	Ref           string `json:"ref" jsonschema:"description=Ref or branch (e.g. refs/heads/master)"`
+	Ref           string `json:"ref" jsonschema:"Ref or branch (e.g. refs/heads/master)"`
 }
 
 func (s *Server) getFileContent(ctx context.Context, req *mcp.CallToolRequest, args getFileContentArgs) (*mcp.CallToolResult, any, error) {

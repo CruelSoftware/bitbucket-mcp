@@ -35,6 +35,11 @@ func ProxyHeaders(allowlist []string) func(http.Handler) http.Handler {
 	}
 }
 
+// WithProxyHeaders stores headers in context (useful for testing).
+func WithProxyHeaders(ctx context.Context, headers map[string]string) context.Context {
+	return context.WithValue(ctx, proxyHeadersKey, headers)
+}
+
 // ProxyHeadersFromContext returns the proxied headers from context, or nil.
 func ProxyHeadersFromContext(ctx context.Context) map[string]string {
 	v := ctx.Value(proxyHeadersKey)
