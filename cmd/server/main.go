@@ -38,7 +38,7 @@ func main() {
 	addr := fmt.Sprintf(":%d", cfg.MCPHTTPPort)
 	server := &http.Server{
 		Addr:              addr,
-		Handler:           mux,
+		Handler:           middleware.TrailingSlash(mux),
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       120 * time.Second,
 	}

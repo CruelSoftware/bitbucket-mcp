@@ -33,6 +33,7 @@ trap "kill $FAKE_PID $MCP_PID 2>/dev/null || true" EXIT
 
 sleep 1
 curl -s http://localhost:3001/health | grep -q healthy || { echo "MCP server not ready"; exit 1; }
+curl -s http://localhost:3001/health/ | grep -q healthy || { echo "MCP server /health/ not ready"; exit 1; }
 echo "MCP server ready"
 
 # MCP requests (Bearer token required; use fake token for fake Bitbucket)
