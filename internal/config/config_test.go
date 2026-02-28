@@ -7,7 +7,7 @@ import (
 
 func clearEnv() {
 	for _, key := range []string{
-		"BITBUCKET_URL", "MCP_HTTP_PORT", "MCP_HTTP_ENDPOINT",
+		"BITBUCKET_URL", "MCP_HTTP_PORT", "MCP_HTTP_ENDPOINT", "MCP_PUBLIC_URL",
 		"BITBUCKET_PROXY_HEADERS", "BITBUCKET_DEFAULT_PROJECT",
 		"BITBUCKET_LOG_LEVEL", "BITBUCKET_DEBUG",
 	} {
@@ -35,6 +35,9 @@ func TestLoad(t *testing.T) {
 	}
 	if cfg.LogLevel != "info" {
 		t.Errorf("LogLevel = %q, want info", cfg.LogLevel)
+	}
+	if cfg.MCPPublicURL != "http://localhost:3001" {
+		t.Errorf("MCPPublicURL = %q, want http://localhost:3001", cfg.MCPPublicURL)
 	}
 }
 
@@ -323,6 +326,33 @@ func TestParseList(t *testing.T) {
 		if len(got) != tt.want {
 			t.Errorf("parseList(%q) = %d items, want %d", tt.input, len(got), tt.want)
 		}
+	}
+}
+
+func TestLoad_MCPPublicURL(t *testing.T) {
+	clearEnv()
+	_ = os.Setenv("BITBUCKET_URL", "https://bitbucket.example.com")
+	_ = os.Setenv("MCP_PUBLIC_URL", "https://mcp.example.com")
+	defer clearEnv()
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.MCPPublicURL != "https://mcp.example.com" {
+		t.Errorf("MCPPublicURL = %q", cfg.MCPPublicURL)
+	}
+}
+
+func TestLoad_InvalidMCPPublicURL(t *testing.T) {
+	clearEnv()
+	_ = os.Setenv("BITBUCKET_URL", "https://bitbucket.example.com")
+	_ = os.Setenv("MCP_PUBLIC_URL", "not-a-valid-url")
+	defer clearEnv()
+
+	_, err := Load()
+	if err == nil {
+		t.Fatal("expected error for invalid MCP_PUBLIC_URL")
 	}
 }
 

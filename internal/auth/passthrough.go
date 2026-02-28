@@ -20,6 +20,7 @@ func PassthroughVerifier() sdkauth.TokenVerifier {
 		return &sdkauth.TokenInfo{
 			UserID:     token,
 			Expiration: time.Now().Add(24 * time.Hour),
+			Scopes:     []string{"REPO_READ", "REPO_WRITE", "PROJECT_READ"},
 		}, nil
 	}
 }

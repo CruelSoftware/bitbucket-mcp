@@ -4,7 +4,8 @@ Go-based [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server
 
 ## Features
 
-- **Per-request auth** — each request passes a Bitbucket personal access token via `Authorization: Bearer`
+- **PAT (Personal Access Token)** — primary auth: Bitbucket token via `Authorization: Bearer` (created in Bitbucket UI)
+- **OAuth discovery** — Protected Resource Metadata (RFC 9728) at `/.well-known/oauth-protected-resource` for VS Code, Cursor
 - **15 tools** — PRs, repos, branches, user profile, file content, code search
 - **HTTP transport** — Streamable HTTP + SSE (no stdio required)
 - **Header proxying** — forward or inject custom headers to Bitbucket
@@ -100,7 +101,9 @@ GET  http://localhost:3001/mcp   → SSE event stream
 GET  http://localhost:3001/health → Health check (no auth)
 ```
 
-All MCP requests must include the `Authorization: Bearer <token>` header. The token is forwarded to Bitbucket — no server-level credential is stored.
+All MCP requests must include the `Authorization: Bearer <token>` header. Use a **Bitbucket Personal Access Token** (PAT) created in Bitbucket UI — the token is forwarded to Bitbucket; no server-level credential is stored.
+
+**OAuth discovery:** VS Code and Cursor probe `/.well-known/oauth-protected-resource` for auth setup. When behind a proxy, set `MCP_PUBLIC_URL` (e.g. `https://mcp.example.com`) so discovery returns the correct URLs.
 
 ---
 
@@ -113,6 +116,7 @@ All configuration is via environment variables:
 | `BITBUCKET_URL` | **Yes** | — | Bitbucket Server base URL (e.g. `https://bitbucket.example.com`) |
 | `MCP_HTTP_PORT` | No | `3001` | Server listen port |
 | `MCP_HTTP_ENDPOINT` | No | `/mcp` | MCP endpoint path |
+| `MCP_PUBLIC_URL` | No | `http://localhost:{port}` | Public URL for OAuth discovery. Set when behind a proxy (e.g. `https://mcp.example.com`) |
 | `BITBUCKET_DEFAULT_PROJECT` | No | — | Default project key when tools omit `workspaceSlug` |
 | `BITBUCKET_PROXY_HEADERS` | No | — | Comma-separated headers to forward from MCP client to Bitbucket (e.g. `X-Request-Id,X-Trace-Id`) |
 | `BITBUCKET_EXTRA_HEADER_<NAME>` | No | — | Static header injected into every Bitbucket request. Underscores become hyphens (e.g. `BITBUCKET_EXTRA_HEADER_X_CUSTOM=value` → `X-CUSTOM: value`) |
@@ -172,20 +176,31 @@ services:
 
 ## Authentication
 
-This server uses **passthrough authentication**. Each MCP request must include:
+**Primary method: Bitbucket Personal Access Token (PAT)**
+
+Each MCP request must include:
 
 ```
 Authorization: Bearer <your_bitbucket_personal_access_token>
 ```
 
-The token is forwarded directly to Bitbucket's REST API. No server-side credentials are stored or configured.
+The token is forwarded directly to Bitbucket's REST API. No server-side credentials are stored.
 
 ### Creating a Bitbucket Personal Access Token
 
 1. Go to your Bitbucket instance → **Profile** → **Manage account** → **Personal access tokens**
 2. Click **Create a token**
 3. Grant permissions: **Repository Read** (minimum), **Repository Write** (for creating PRs, branches, merges)
-4. Copy the token and use it in your MCP client config
+4. Copy the token and use it in your MCP client config (e.g. `headers.Authorization` in Cursor/VS Code)
+
+### OAuth Discovery
+
+The server exposes [OAuth 2.0 Protected Resource Metadata](https://www.rfc-editor.org/rfc/rfc9728) (RFC 9728) at:
+
+- `/.well-known/oauth-protected-resource`
+- `/.well-known/oauth-protected-resource/mcp` (path-specific)
+
+VS Code and Cursor use this for auth setup. On 401, the server returns `WWW-Authenticate` with `resource_metadata` pointing to this document. When running behind a reverse proxy, set `MCP_PUBLIC_URL` to your public URL so discovery returns correct URLs.
 
 ---
 

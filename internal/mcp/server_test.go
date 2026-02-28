@@ -113,7 +113,14 @@ func TestHandler_HTTPRequest(t *testing.T) {
 }
 
 func TestAuthMiddleware(t *testing.T) {
-	mw := AuthMiddleware()
+	mw := AuthMiddleware("")
+	if mw == nil {
+		t.Error("AuthMiddleware should not be nil")
+	}
+}
+
+func TestAuthMiddleware_WithResourceMetadataURL(t *testing.T) {
+	mw := AuthMiddleware("https://mcp.example.com/.well-known/oauth-protected-resource/mcp")
 	if mw == nil {
 		t.Error("AuthMiddleware should not be nil")
 	}

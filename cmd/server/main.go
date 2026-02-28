@@ -25,8 +25,9 @@ func main() {
 	client := bitbucket.NewClient(cfg.BitbucketURL, cfg.ExtraHeaders, cfg.LogLevel)
 	srv := mcp.NewServer(client, cfg.DefaultProjectKey)
 
+	resourceMetadataURL := cfg.MCPPublicURL + "/.well-known/oauth-protected-resource" + cfg.MCPHTTPEndpoint
 	handler := middleware.LogRequests(cfg.LogLevel, log.Default())(
-		middleware.ProxyHeaders(cfg.ProxyHeaders)(mcp.AuthMiddleware()(srv.Handler())))
+		middleware.ProxyHeaders(cfg.ProxyHeaders)(mcp.AuthMiddleware(resourceMetadataURL)(srv.Handler())))
 
 	mux := http.NewServeMux()
 	mux.Handle(cfg.MCPHTTPEndpoint, handler)
@@ -34,6 +35,10 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = fmt.Fprint(w, `{"status":"healthy"}`)
 	})
+	// OAuth 2.0 Protected Resource Metadata (RFC 9728) for discovery by VS Code, Cursor, etc.
+	wellKnown := mcp.ProtectedResourceMetadataHandler(cfg.MCPPublicURL, cfg.MCPHTTPEndpoint, cfg.BitbucketURL)
+	mux.Handle("/.well-known/oauth-protected-resource", wellKnown)
+	mux.Handle("/.well-known/oauth-protected-resource"+cfg.MCPHTTPEndpoint, wellKnown)
 
 	addr := fmt.Sprintf(":%d", cfg.MCPHTTPPort)
 	server := &http.Server{

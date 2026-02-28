@@ -97,6 +97,12 @@ func (s *Server) Handler() http.Handler {
 }
 
 // AuthMiddleware returns the auth middleware (RequireBearerToken with passthrough verifier).
-func AuthMiddleware() func(http.Handler) http.Handler {
-	return sdkauth.RequireBearerToken(auth.PassthroughVerifier(), nil)
+// resourceMetadataURL is the full URL to Protected Resource Metadata (RFC 9728), e.g. https://mcp.example.com/.well-known/oauth-protected-resource/mcp.
+// If empty, WWW-Authenticate on 401 will not include resource_metadata.
+func AuthMiddleware(resourceMetadataURL string) func(http.Handler) http.Handler {
+	opts := &sdkauth.RequireBearerTokenOptions{
+		ResourceMetadataURL: resourceMetadataURL,
+		Scopes:              []string{"REPO_READ", "REPO_WRITE"},
+	}
+	return sdkauth.RequireBearerToken(auth.PassthroughVerifier(), opts)
 }
