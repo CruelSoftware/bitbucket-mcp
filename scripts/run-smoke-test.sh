@@ -50,6 +50,11 @@ curl -s http://localhost:3001/health
 echo ""
 
 echo ""
+echo "1b. OAuth discovery (Protected Resource Metadata)"
+curl -s http://localhost:3001/.well-known/oauth-protected-resource/mcp | head -c 300
+echo ""
+
+echo ""
 echo "2. MCP initialize (get session ID)"
 INIT_RESP=$(curl -s -D - -X POST "$MCP_URL" -H "$ACCEPT" -H "$CT" -H "$AUTH" -H "$MCP_VER" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"smoke-test","version":"1.0"}}}')

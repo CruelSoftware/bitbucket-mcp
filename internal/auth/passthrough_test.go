@@ -22,6 +22,9 @@ func TestPassthroughVerifier(t *testing.T) {
 	if info.Expiration.IsZero() {
 		t.Error("Expiration should be set")
 	}
+	if len(info.Scopes) == 0 {
+		t.Error("Scopes should be set for SDK scope validation")
+	}
 
 	// Empty token
 	_, err = verifier(ctx, "", req)

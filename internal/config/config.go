@@ -9,13 +9,14 @@ import (
 
 // Config holds server configuration from environment.
 type Config struct {
-	BitbucketURL      string
-	MCPHTTPPort       int
+	BitbucketURL       string
+	MCPHTTPPort        int
 	MCPHTTPEndpoint   string
+	MCPPublicURL      string // Base URL for MCP server (e.g. https://mcp.example.com). Used for OAuth discovery. Default: http://localhost:{port}
 	ProxyHeaders      []string
 	ExtraHeaders      map[string]string
 	DefaultProjectKey string
-	LogLevel string // "info" (default), "debug", or "off" - BITBUCKET_LOG_LEVEL
+	LogLevel          string // "info" (default), "debug", or "off" - BITBUCKET_LOG_LEVEL
 }
 
 // Load reads configuration from environment variables.
@@ -67,14 +68,22 @@ func Load() (*Config, error) {
 		logLevel = "info"
 	}
 
+	publicURL := strings.TrimSuffix(strings.TrimSpace(os.Getenv("MCP_PUBLIC_URL")), "/")
+	if publicURL == "" {
+		publicURL = "http://localhost:" + strconv.Itoa(port)
+	} else if u, err := url.Parse(publicURL); err != nil || u.Scheme == "" || u.Host == "" {
+		return nil, &ConfigError{Field: "MCP_PUBLIC_URL", Msg: "invalid URL (use e.g. https://mcp.example.com)"}
+	}
+
 	return &Config{
-		BitbucketURL:      bitbucketURL,
-		MCPHTTPPort:       port,
-		MCPHTTPEndpoint:   endpoint,
-		ProxyHeaders:      proxyHeaders,
-		ExtraHeaders:      extraHeaders,
-		DefaultProjectKey: defaultProject,
-		LogLevel:          logLevel,
+		BitbucketURL:       bitbucketURL,
+		MCPHTTPPort:        port,
+		MCPHTTPEndpoint:    endpoint,
+		MCPPublicURL:       publicURL,
+		ProxyHeaders:       proxyHeaders,
+		ExtraHeaders:       extraHeaders,
+		DefaultProjectKey:  defaultProject,
+		LogLevel:           logLevel,
 	}, nil
 }
 
