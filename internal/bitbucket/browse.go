@@ -3,9 +3,9 @@ package bitbucket
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // BrowseLine represents a line of file content.
@@ -24,25 +24,16 @@ func (c *Client) GetFileContent(ctx context.Context, projectKey, repoSlug, fileP
 	if ref != "" {
 		path += "?at=" + url.QueryEscape(ref)
 	}
-	resp, err := c.do(ctx, http.MethodGet, path, nil, opts)
-	if err != nil {
-		return "", err
-	}
-	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(resp.Body)
-		_ = resp.Body.Close()
-		return "", fmt.Errorf("get file failed %d: %s", resp.StatusCode, string(body))
-	}
 	var out BrowseResponse
-	if err := decodeJSON(resp, &out); err != nil {
+	if err := c.doJSON(ctx, c.api, http.MethodGet, path, nil, &out, opts); err != nil {
 		return "", fmt.Errorf("get file content: %w", err)
 	}
-	var content string
-	for _, line := range out.Lines {
-		content += line.Text + "\n"
+	var b strings.Builder
+	for i, line := range out.Lines {
+		if i > 0 {
+			b.WriteByte('\n')
+		}
+		b.WriteString(line.Text)
 	}
-	if len(content) > 0 && content[len(content)-1] == '\n' {
-		content = content[:len(content)-1]
-	}
-	return content, nil
+	return b.String(), nil
 }

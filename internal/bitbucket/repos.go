@@ -11,7 +11,7 @@ import (
 type Repository struct {
 	Slug    string `json:"slug"`
 	Name    string `json:"name"`
-	ID     int    `json:"id"`
+	ID      int    `json:"id"`
 	Project *struct {
 		Key  string `json:"key"`
 		Name string `json:"name"`
@@ -31,12 +31,8 @@ type ReposResponse struct {
 // ListRepositories returns repositories for a project (workspace).
 func (c *Client) ListRepositories(ctx context.Context, projectKey string, opts RequestOpts) (*ReposResponse, error) {
 	path := "/projects/" + url.PathEscape(projectKey) + "/repos"
-	resp, err := c.do(ctx, http.MethodGet, path, nil, opts)
-	if err != nil {
-		return nil, err
-	}
 	var out ReposResponse
-	if err := decodeJSON(resp, &out); err != nil {
+	if err := c.doJSON(ctx, c.api, http.MethodGet, path, nil, &out, opts); err != nil {
 		return nil, fmt.Errorf("list repositories: %w", err)
 	}
 	return &out, nil
@@ -45,12 +41,8 @@ func (c *Client) ListRepositories(ctx context.Context, projectKey string, opts R
 // GetRepository returns repository details.
 func (c *Client) GetRepository(ctx context.Context, projectKey, repoSlug string, opts RequestOpts) (*Repository, error) {
 	path := "/projects/" + url.PathEscape(projectKey) + "/repos/" + url.PathEscape(repoSlug)
-	resp, err := c.do(ctx, http.MethodGet, path, nil, opts)
-	if err != nil {
-		return nil, err
-	}
 	var out Repository
-	if err := decodeJSON(resp, &out); err != nil {
+	if err := c.doJSON(ctx, c.api, http.MethodGet, path, nil, &out, opts); err != nil {
 		return nil, fmt.Errorf("get repository: %w", err)
 	}
 	return &out, nil

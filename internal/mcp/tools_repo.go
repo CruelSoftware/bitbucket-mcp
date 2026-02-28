@@ -72,10 +72,10 @@ func (s *Server) searchContent(ctx context.Context, req *mcp.CallToolRequest, ar
 }
 
 type getFileContentArgs struct {
-	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"required"`
+	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"description=Project key (default: BITBUCKET_DEFAULT_PROJECT)"`
 	RepoSlug      string `json:"repoSlug" jsonschema:"required"`
 	FilePath      string `json:"filePath" jsonschema:"required"`
-	Ref           string `json:"ref" jsonschema:"Ref or branch (e.g. refs/heads/master)"`
+	Ref           string `json:"ref" jsonschema:"description=Ref or branch (e.g. refs/heads/master)"`
 }
 
 func (s *Server) getFileContent(ctx context.Context, req *mcp.CallToolRequest, args getFileContentArgs) (*mcp.CallToolResult, any, error) {

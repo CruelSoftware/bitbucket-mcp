@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -19,15 +20,19 @@ func (s *Server) registerBranchTools() {
 }
 
 type createBranchArgs struct {
-	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"required"`
+	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"description=Project key (default: BITBUCKET_DEFAULT_PROJECT)"`
 	Repository   string `json:"repository" jsonschema:"required"`
 	Name         string `json:"name" jsonschema:"required"`
-	StartPoint   string `json:"startPoint" jsonschema:"Base branch (default: master)"`
+	StartPoint   string `json:"startPoint" jsonschema:"description=Base branch (default: master)"`
 }
 
 func (s *Server) createBranch(ctx context.Context, req *mcp.CallToolRequest, args createBranchArgs) (*mcp.CallToolResult, any, error) {
+	projectKey := s.projectKey(args.WorkspaceSlug)
+	if projectKey == "" {
+		return nil, nil, fmt.Errorf("workspaceSlug required (or set BITBUCKET_DEFAULT_PROJECT)")
+	}
 	opts := s.getOpts(ctx, req)
-	branch, err := s.client.CreateBranch(ctx, args.WorkspaceSlug, args.Repository, args.Name, args.StartPoint, opts)
+	branch, err := s.client.CreateBranch(ctx, projectKey, args.Repository, args.Name, args.StartPoint, opts)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -36,13 +41,17 @@ func (s *Server) createBranch(ctx context.Context, req *mcp.CallToolRequest, arg
 }
 
 type listBranchesArgs struct {
-	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"required"`
+	WorkspaceSlug string `json:"workspaceSlug" jsonschema:"description=Project key (default: BITBUCKET_DEFAULT_PROJECT)"`
 	Repository    string `json:"repository" jsonschema:"required"`
 }
 
 func (s *Server) listRepositoryBranches(ctx context.Context, req *mcp.CallToolRequest, args listBranchesArgs) (*mcp.CallToolResult, any, error) {
+	projectKey := s.projectKey(args.WorkspaceSlug)
+	if projectKey == "" {
+		return nil, nil, fmt.Errorf("workspaceSlug required (or set BITBUCKET_DEFAULT_PROJECT)")
+	}
 	opts := s.getOpts(ctx, req)
-	resp, err := s.client.ListBranches(ctx, args.WorkspaceSlug, args.Repository, opts)
+	resp, err := s.client.ListBranches(ctx, projectKey, args.Repository, opts)
 	if err != nil {
 		return nil, nil, err
 	}

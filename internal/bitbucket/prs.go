@@ -1,11 +1,8 @@
 package bitbucket
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -27,9 +24,9 @@ type PullRequest struct {
 
 // Ref represents a branch reference.
 type Ref struct {
-	ID         string      `json:"id"`
-	DisplayID  string      `json:"displayId"`
-	Repository *Repository `json:"repository"`
+	ID         string       `json:"id"`
+	DisplayID  string       `json:"displayId"`
+	Repository *Repository  `json:"repository"`
 }
 
 // RefInput is a minimal ref for create PR (repository with project key).
@@ -39,7 +36,7 @@ type RefInput struct {
 }
 
 type RepositoryRefInput struct {
-	Slug    string         `json:"slug"`
+	Slug    string          `json:"slug"`
 	Project *ProjectRefInput `json:"project"`
 }
 
@@ -77,13 +74,8 @@ func NewCreatePRRequest(projectKey, repoSlug, sourceBranch, targetBranch, title,
 // CreatePullRequest creates a new pull request.
 func (c *Client) CreatePullRequest(ctx context.Context, projectKey, repoSlug string, req CreatePRRequest, opts RequestOpts) (*PullRequest, error) {
 	path := "/projects/" + url.PathEscape(projectKey) + "/repos/" + url.PathEscape(repoSlug) + "/pull-requests"
-	body, _ := json.Marshal(req)
-	resp, err := c.do(ctx, http.MethodPost, path, bytes.NewReader(body), opts)
-	if err != nil {
-		return nil, err
-	}
 	var out PullRequest
-	if err := decodeJSON(resp, &out); err != nil {
+	if err := c.doJSON(ctx, c.api, http.MethodPost, path, req, &out, opts); err != nil {
 		return nil, fmt.Errorf("create pull request: %w", err)
 	}
 	return &out, nil
@@ -93,12 +85,8 @@ func (c *Client) CreatePullRequest(ctx context.Context, projectKey, repoSlug str
 func (c *Client) GetPullRequest(ctx context.Context, projectKey, repoSlug string, prID int, opts RequestOpts) (*PullRequest, error) {
 	path := fmt.Sprintf("/projects/%s/repos/%s/pull-requests/%d",
 		url.PathEscape(projectKey), url.PathEscape(repoSlug), prID)
-	resp, err := c.do(ctx, http.MethodGet, path, nil, opts)
-	if err != nil {
-		return nil, err
-	}
 	var out PullRequest
-	if err := decodeJSON(resp, &out); err != nil {
+	if err := c.doJSON(ctx, c.api, http.MethodGet, path, nil, &out, opts); err != nil {
 		return nil, fmt.Errorf("get pull request: %w", err)
 	}
 	return &out, nil
@@ -112,10 +100,8 @@ func (c *Client) MergePullRequest(ctx context.Context, projectKey, repoSlug stri
 	if err != nil {
 		return err
 	}
-	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("merge failed %d: %s", resp.StatusCode, string(body))
+	if resp.IsError() {
+		return fmt.Errorf("merge failed %w", apiError(resp, ""))
 	}
 	return nil
 }
@@ -128,10 +114,8 @@ func (c *Client) DeclinePullRequest(ctx context.Context, projectKey, repoSlug st
 	if err != nil {
 		return err
 	}
-	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("decline failed %d: %s", resp.StatusCode, string(body))
+	if resp.IsError() {
+		return fmt.Errorf("decline failed %w", apiError(resp, ""))
 	}
 	return nil
 }
@@ -144,13 +128,10 @@ func (c *Client) GetPullRequestDiff(ctx context.Context, projectKey, repoSlug st
 	if err != nil {
 		return "", err
 	}
-	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("get diff failed %d: %s", resp.StatusCode, string(body))
+	if resp.IsError() {
+		return "", fmt.Errorf("get diff failed %w", apiError(resp, ""))
 	}
-	body, err := io.ReadAll(resp.Body)
-	return string(body), err
+	return resp.String(), nil
 }
 
 // AddPRCommentRequest is the request body for adding a PR comment.
@@ -162,24 +143,21 @@ type AddPRCommentRequest struct {
 func (c *Client) AddPullRequestComment(ctx context.Context, projectKey, repoSlug string, prID int, text string, opts RequestOpts) error {
 	path := fmt.Sprintf("/projects/%s/repos/%s/pull-requests/%d/comments",
 		url.PathEscape(projectKey), url.PathEscape(repoSlug), prID)
-	body, _ := json.Marshal(AddPRCommentRequest{Text: text})
-	resp, err := c.do(ctx, http.MethodPost, path, bytes.NewReader(body), opts)
+	resp, err := c.do(ctx, http.MethodPost, path, AddPRCommentRequest{Text: text}, opts)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode >= 400 {
-		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("add comment failed %d: %s", resp.StatusCode, string(b))
+	if resp.IsError() {
+		return fmt.Errorf("add comment failed %w", apiError(resp, ""))
 	}
 	return nil
 }
 
 // Participant represents a PR participant (reviewer).
 type Participant struct {
-	User       *User `json:"user"`
-	Approved   bool  `json:"approved"`
-	Status     string `json:"status"`
+	User     *User  `json:"user"`
+	Approved bool   `json:"approved"`
+	Status   string `json:"status"`
 }
 
 // ParticipantsResponse is the API response for PR participants.
@@ -191,12 +169,8 @@ type ParticipantsResponse struct {
 func (c *Client) GetPullRequestParticipants(ctx context.Context, projectKey, repoSlug string, prID int, opts RequestOpts) (*ParticipantsResponse, error) {
 	path := fmt.Sprintf("/projects/%s/repos/%s/pull-requests/%d/participants",
 		url.PathEscape(projectKey), url.PathEscape(repoSlug), prID)
-	resp, err := c.do(ctx, http.MethodGet, path, nil, opts)
-	if err != nil {
-		return nil, err
-	}
 	var out ParticipantsResponse
-	if err := decodeJSON(resp, &out); err != nil {
+	if err := c.doJSON(ctx, c.api, http.MethodGet, path, nil, &out, opts); err != nil {
 		return nil, fmt.Errorf("get participants: %w", err)
 	}
 	return &out, nil

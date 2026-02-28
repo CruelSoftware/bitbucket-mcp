@@ -24,12 +24,8 @@ type WorkspacesResponse struct {
 
 // ListWorkspaces returns all workspaces (projects) the user can access.
 func (c *Client) ListWorkspaces(ctx context.Context, opts RequestOpts) (*WorkspacesResponse, error) {
-	resp, err := c.do(ctx, http.MethodGet, "/projects", nil, opts)
-	if err != nil {
-		return nil, err
-	}
 	var out WorkspacesResponse
-	if err := decodeJSON(resp, &out); err != nil {
+	if err := c.doJSON(ctx, c.api, http.MethodGet, "/projects", nil, &out, opts); err != nil {
 		return nil, fmt.Errorf("list workspaces: %w", err)
 	}
 	return &out, nil
