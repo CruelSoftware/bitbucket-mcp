@@ -15,7 +15,7 @@ Go-based MCP server for Bitbucket Server/Data Center. Enables AI systems to inte
 # Docker
 docker run -p 3001:3001 \
   -e BITBUCKET_URL="https://your-bitbucket.example.com" \
-  ghcr.io/<org>/bitbucket-mcp:latest
+  ghcr.io/cruelsoftware/bitbucket-mcp:latest
 
 # Or build locally
 go build -o bitbucket-mcp ./cmd/server
@@ -32,6 +32,7 @@ BITBUCKET_URL=https://your-bitbucket.example.com ./bitbucket-mcp
 | `BITBUCKET_PROXY_HEADERS` | No | Comma-separated headers to forward to Bitbucket |
 | `BITBUCKET_EXTRA_HEADER_<NAME>` | No | Static header (e.g. `BITBUCKET_EXTRA_HEADER_X_CUSTOM=value`) |
 | `BITBUCKET_DEFAULT_PROJECT` | No | Default project key when tools omit workspaceSlug |
+| `BITBUCKET_LOG_LEVEL` | No | Log level: `info` (default), `debug`, or `off` |
 
 ## Authentication
 
@@ -71,7 +72,7 @@ The token is proxied to Bitbucket; no server-level token is used.
 
 Images are built and pushed to GitHub Container Registry on push to main/master or tags `v*`.
 
-**Image**: `ghcr.io/<owner>/<repo>` (e.g. `ghcr.io/n8n/bitbucket-mcp`)
+**Image**: `ghcr.io/cruelsoftware/bitbucket-mcp:latest`
 
 **Setup**: No extra config. `GITHUB_TOKEN` has `packages: write`. For public packages, go to repo Settings → Packages → select the package → Change visibility to Public.
 

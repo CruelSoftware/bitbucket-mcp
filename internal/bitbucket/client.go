@@ -18,8 +18,8 @@ type Client struct {
 	search *resty.Client
 }
 
-// NewClient creates a Bitbucket API client with retries and optional debug logging.
-func NewClient(baseURL string, extraHeaders map[string]string) *Client {
+// NewClient creates a Bitbucket API client. logLevel: "info" (default), "debug", or "off".
+func NewClient(baseURL string, extraHeaders map[string]string, logLevel string) *Client {
 	base := strings.TrimSuffix(baseURL, "/")
 	apiBase := base + "/rest/api/1.0"
 	searchBase := base + "/rest/search/1.0"
@@ -45,7 +45,8 @@ func NewClient(baseURL string, extraHeaders map[string]string) *Client {
 		search.SetHeader(k, v)
 	}
 
-	if os.Getenv("BITBUCKET_DEBUG") != "" {
+	enableDebug := logLevel == "debug" || (logLevel == "" && os.Getenv("BITBUCKET_DEBUG") != "")
+	if enableDebug {
 		logger := &debugLogger{log: log.Default()}
 		api.SetDebug(true).SetLogger(logger)
 		search.SetDebug(true).SetLogger(logger)

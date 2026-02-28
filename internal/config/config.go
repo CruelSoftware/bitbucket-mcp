@@ -9,12 +9,13 @@ import (
 
 // Config holds server configuration from environment.
 type Config struct {
-	BitbucketURL        string
-	MCPHTTPPort         int
-	MCPHTTPEndpoint     string
-	ProxyHeaders        []string
-	ExtraHeaders        map[string]string
-	DefaultProjectKey   string
+	BitbucketURL      string
+	MCPHTTPPort       int
+	MCPHTTPEndpoint   string
+	ProxyHeaders      []string
+	ExtraHeaders      map[string]string
+	DefaultProjectKey string
+	LogLevel string // "info" (default), "debug", or "off" - BITBUCKET_LOG_LEVEL
 }
 
 // Load reads configuration from environment variables.
@@ -55,13 +56,25 @@ func Load() (*Config, error) {
 		return nil, &ConfigError{Field: "BITBUCKET_DEFAULT_PROJECT", Msg: "invalid format (use A-Z0-9_-)"}
 	}
 
+	logLevel := strings.ToLower(strings.TrimSpace(os.Getenv("BITBUCKET_LOG_LEVEL")))
+	if logLevel == "" && os.Getenv("BITBUCKET_DEBUG") != "" {
+		logLevel = "debug" // backward compat
+	}
+	if logLevel != "" && logLevel != "info" && logLevel != "debug" && logLevel != "off" {
+		return nil, &ConfigError{Field: "BITBUCKET_LOG_LEVEL", Msg: "must be info, debug, or off"}
+	}
+	if logLevel == "" {
+		logLevel = "info"
+	}
+
 	return &Config{
-		BitbucketURL:    bitbucketURL,
-		MCPHTTPPort:     port,
-		MCPHTTPEndpoint: endpoint,
+		BitbucketURL:      bitbucketURL,
+		MCPHTTPPort:       port,
+		MCPHTTPEndpoint:   endpoint,
 		ProxyHeaders:      proxyHeaders,
 		ExtraHeaders:      extraHeaders,
 		DefaultProjectKey: defaultProject,
+		LogLevel:          logLevel,
 	}, nil
 }
 

@@ -17,7 +17,7 @@ func main() {
 		log.Fatalf("config: %v", err)
 	}
 
-	client := bitbucket.NewClient(cfg.BitbucketURL, cfg.ExtraHeaders)
+	client := bitbucket.NewClient(cfg.BitbucketURL, cfg.ExtraHeaders, cfg.LogLevel)
 	srv := mcp.NewServer(client, cfg.DefaultProjectKey)
 
 	// Middleware chain: header proxy -> auth -> MCP handler

@@ -11,6 +11,8 @@ func TestLoad(t *testing.T) {
 	_ = os.Unsetenv("MCP_HTTP_ENDPOINT")
 	_ = os.Unsetenv("BITBUCKET_PROXY_HEADERS")
 	_ = os.Unsetenv("BITBUCKET_DEFAULT_PROJECT")
+	_ = os.Unsetenv("BITBUCKET_LOG_LEVEL")
+	_ = os.Unsetenv("BITBUCKET_DEBUG")
 	defer func() {
 		_ = os.Unsetenv("BITBUCKET_URL")
 	}()
@@ -27,6 +29,9 @@ func TestLoad(t *testing.T) {
 	}
 	if cfg.MCPHTTPEndpoint != "/mcp" {
 		t.Errorf("MCPHTTPEndpoint = %q", cfg.MCPHTTPEndpoint)
+	}
+	if cfg.LogLevel != "info" {
+		t.Errorf("LogLevel = %q, want info", cfg.LogLevel)
 	}
 }
 
